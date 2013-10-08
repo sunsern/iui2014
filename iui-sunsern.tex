@@ -182,21 +182,6 @@ at the interesting situation in which both the computer and the human
 adapt over time in an effort to maximize the input rate of the
 data entry method. We refer to this situation as {\em co-adaptation}.
  
-
-% \iffalse
-% A natural way to measure the speed of data entry is to count the
-% number of letters entered correctly per second. However, this puts too
-% large a penalty on mistakes. Suppose a user intends to write the
-% letter $h$ but enters a letter than looks more like the letter
-% ``n''. We can count this as a mistake. However, if the recognition
-% algorithm gives 50\% probability to ``n'', 40\% probability to the
-% letter ``h'' and less than 1\% probability to the other 24 letters,
-% then we can say that the user did provide significant information
-% about the intended letter. Combining this information with information
-% on inter-character dependence can be used to resolve the ambiguity.
-% \fi
-
-
 Handwriting data is usually analyzed one ``unit'' at a time where
 ``unit'' can be a stroke, a chracter, a word or even a
 sentence. In this work, we propose an alternative analysis where the
@@ -204,33 +189,14 @@ data is analyzed in fixed intervals of time. We consider the process
 of writing as a process of through which the intended letter is
 disambiguated from the other possible letters. 
 
-
-
-In this paper we focus on handwriting recognition systems where a user
-sends the information, one character at a time, to the computer using
-her natural handwriting. To quantify the rate of information
-transmitted, we compute the mutual information between the intended
-character and the decoded character distribution and divide it by the
-length of time it takes to complete writing the letter. This ratio
-defines the data rate in the information theoretic sense.  The exact
-definition will be given in Section~\ref{sec:channel}.
-
-
-% \iffalse
-% The contributions of this paper are:
-% \begin{itemize}
-% \item A theoretical framework for quantifying the data transfer rate
-%   of a system that combines a human writer and a handwriting
-%   recognition system.
-% \item An adaptive handwriting recognition system that is based on
-%   unsupervised clustering and Bayesian inference.
-% \item Results from a small deployment of the system, demonstrating
-%   its promise.
-% \item A method for visualizing the process by which the identity of
-%   the character is decoded in continuous time leading to suggestions
-%   for how to improve the handwriting of the user. 
-% \end{itemize}
-% \fi
+In this paper, we focus on handwriting recognition systems where a user
+sends the information to the computer using her natural
+handwriting. To quantify the rate of information transmitted, we
+compute the mutual information between the intended character and the
+decoded character distribution and divide it by the length of time it
+takes to complete writing the letter. This ratio defines the data rate
+in the information theoretic sense.  The exact definition will be
+given in Section~\ref{sec:channel}.
 
 The paper is organized as follows. In Section~\ref{sec:channel}, we
 describe the handwriting channel and define the information rate. In
@@ -239,6 +205,7 @@ algorithm. In Section~\ref{sec:experiment} and
 Section~\ref{sec:results}, we describe the experiment and present the
 results respectively. Finally, we draw some conclusions in
 Section~\ref{sec:conclusions}.
+
 
 \section{Handwriting recognition as a communication channel}
 \label{sec:channel}
@@ -266,6 +233,7 @@ continuous time as depicted in Figure~\ref{fig:hwr_channel}.
 \newcommand{\bps}{R}
 \newcommand{\logloss}{\mathcal{L}}
 \newcommand{\expectedDuration}{\mathbb{E} \left[\tFinal\right]}
+\newcommand{\condEntropy}{H(\predFinal | \intent)}
 
 We formalize this process using the concept of a communication
 channel~\cite{Shannon1948}.  Let $\intentSet$ denote the set of all
@@ -284,8 +252,9 @@ movements which is sampled at some rate to create a discrete time
 trajectory: $\writing{T} = \left[ (x_1,y_1), \ldots, (x_T,y_T)
 \right]$. In other words, this process {\em encodes} the intent
 $\intent$ into a trajectory $\writing{T}$. We can model the
-variability in the encoding with the distribution $\writingDist$. The
-second process is the process of decoding the handwriting trajectory
+variability in the encoding with the distribution $\writingDist$. 
+
+The second process is the process of decoding the handwriting trajectory
 into the original intent. For each time step $1 \le t \le T$, the process
 maps a trajectory $\writing{t}$ to a distribution over $\intentSet$,
 $\pred{t}$, which is also the output of the channel.
@@ -298,18 +267,17 @@ $\pred{t}$, which is also the output of the channel.
 \end{figure}
 
 Let $\tFinal$ and $\predFinal$ denote the time and the posterior
-distribution when the user finishes writing the input respectively.
+distribution when the user finishes writing the trajectory respectively.
 According to the theory of channel capacity, the information
-transmitted through the channel by the time the user completes writing
-the character is quantified by the mutual information between the
+transmitted through the channel is quantified by the mutual information between the
 input $\intent$ and the decoding posterior $\predFinal$, $I(\intent ;
 \predFinal)$. We now unpack this expression.  We define the mean
 posterior of $\predFinal$ conditioned on $\intent$ and the average
 posterior distribution as follows.
 \[
 P(\predFinal | \intent)=
-\sum_{\bar{w} \sim \writingDist} { P(\predFinal | \writing{\tFinal} = \bar{w})
-P(\writing{\tFinal} = \bar{w} | \intent)} 
+\int_{\bar{w} \sim \writingDist} { P(\predFinal | \bar{w})
+P(\bar{w} | \intent)} 
 \]
 \[
 P(\predFinal)
@@ -339,7 +307,7 @@ R_{MI}(\intent, \predFinal)
 The channel rate $R_{MI}$ yields a high value as long as $P(\predFinal |
 \intent)$ concentrates on some intent. We propose another measure of
 the channel rate $R_{logloss}$ based on the idea of log loss that
-also penalizes incorrect concentration.
+also penalizes incorrectly concentrated distributions.
 \[
 R_{logloss}(\intent, \predFinal)
 =
@@ -420,7 +388,10 @@ likelihood is predicted. In addition, for our analysis, it also
 outputs the posterior probability distribution over the characters
 $\predFinal$.
 
-\subsection{Prototype training}
+\subsection{Distance function and Decoding}
+
+\newcommand{\forwardprob}{\alpha^{(t)}_{i,j}}
+\newcommand{\prototypeSet}{\mathcal{P}}
 
 For each character $c \in \intentSet$, our aim is to discover
 different writing styles of $c$ and create a prototype for each of
@@ -432,6 +403,29 @@ $f_i = (x_i,y_i, dx_i,dy_i)$.  $(x_i,y_i)$ denotes the normalized
 touchscreen coordinate and $(dx_i,dy_i) = (\frac{x_i - x_{i-1}}{z},
 \frac{y_i - y_{i-1}}{z}) , z = \sqrt{(x_i - x_{i-1})^2 + (y_i -
   y_{i-1})^2}$ denotes the writing direction.
+
+
+Our decoding is based on the standard Bayesian inference.
+For user $u$, the algorithm maintains a set of prototypes
+$\prototypeSet_u = \{ T_1, T_2, ... , T_m\}$. The probability distribution over all
+the prototypes and all the hidden states of each prototype given the
+handwriting trajectory $\writing{T}$, or $P(T_{i,j} |\writing{T})$, is
+estimated using forward algorithm. Let $\forwardprob$ denote $P(T_{i,j} |
+\writing{T})$. Based on $\forwardprob$, the probability of prototype
+$T_i$ conditioned on $\writing{T}$ is given by $P(T_i | \writing{T}) = \sum_{j}
+\forwardprob$. 
+
+
+
+\subsection{Prototype training}
+
+
+\subsection{Choosing best prototypes}
+
+This leverages the information from the crowd.
+
+\subsection{Adapting the prototypes over time}
+
 
 Once the cluster structures are found, for each cluster, we find the
 medoid of the cluster and transform it into a prototype i.e. a
@@ -456,8 +450,6 @@ before and after the reduction step.
   \label{fig:state_reduction}
 \end{figure}
 
-\newcommand{\prototypeSet}{\mathcal{P}}
-
 From the collection of all prototypes $\prototypeSet_{all}$, we then
 select a subset of prototypes $\prototypeSet_u \subset
 \prototypeSet_{all}$ for each user $u$ such that the recognition error
@@ -467,72 +459,7 @@ prototypes are sufficient for each user-character pair. Similarly, a
 prototype set for all users (writer-independent) can be found by
 replacing the user-specific training data with the data from all users.
 
-% \iffalse
-% \begin{algorithm}[p]
-% \caption{Prototype selection}
-% \algsetup{linenosize=\tiny}
-% \label{alg:selection}
-% \begin{algorithmic}[1]
-% \REQUIRE{$\mathcal{D}_u$ = Training set from user $u$, 
-%   $\prototypeSet_{all}$ = Available prototype set}
-% \STATE $\prototypeSet_u = \emptyset$
-% \REPEAT
-% \STATE $err \leftarrow error\_rate(\mathcal{D}_u, \prototypeSet_u)$
-% \FOR{each prototype $T_{i} \in \prototypeSet_{all}$}
-% \STATE $err' \leftarrow error\_rate(\mathcal{D}_u, \prototypeSet_u \cup
-% \{ T_{i} \})$
-% \IF{$err - err' > best\_reduction$}
-% \STATE $best\_reduction \leftarrow err - err'$
-% \STATE $next\_prototype \leftarrow T_{i}$
-% \ENDIF
-% \ENDFOR
-% \STATE $\prototypeSet_u \leftarrow \prototypeSet_u \cup \{ next\_prototype\}$
-% \UNTIL{$best\_reduction < \epsilon$}
-% \end{algorithmic}
-% \end{algorithm}
-% \fi
 
-\subsection{Decoding}
-
-\newcommand{\forwardprob}{\alpha^{(t)}_{i,j}}
-
-Our decoding is based on the standard Bayesian inference.
-For user $u$, the algorithm maintains a set of prototypes
-$\prototypeSet_u = \{ T_1, T_2, ... , T_m\}$. The probability distribution over all
-the prototypes and all the hidden states of each prototype given the
-handwriting trajectory $\writing{T}$, or $P(T_{i,j} |\writing{T})$, is
-estimated using forward algorithm. Let $\forwardprob$ denote $P(T_{i,j} |
-\writing{T})$. Based on $\forwardprob$, the probability of prototype
-$T_i$ conditioned on $\writing{T}$ is given by $P(T_i | \writing{T}) = \sum_{j}
-\forwardprob$. 
-
-% \iffalse
-% \begin{algorithm}[p]
-% \caption{Beam-search forward algorithm}
-% \label{alg:forward}
-% \begin{algorithmic}[1]
-% \REQUIRE{$\{T_1,..T_m\}$  = the prototype set\\ $K$ =
-%   beam width \\ $A_{i,j,k}$ = the transition probability from state
-%   $j$ to state $k$ of prototype
-%   $T_i$ \\ $B_{i,j}(f_t)$ = the emission probability of state
-%   $j$ of prototype $T_i$ with observation $f_t$}
-% \STATE $\alpha^{(0)}_{i,1} \leftarrow$ the prior probability of
-% prototype $T_i$
-% \STATE $active \leftarrow \{ \alpha^{(0)}_{i,0} ; \forall \; 1 \le i \le m \}$
-% \FOR{each time step $t$}
-% \STATE $new\_active \leftarrow \{\}$
-% \WHILE{$active \ne \emptyset$}
-% \STATE remove $\alpha^{(t-1)}_{i,j}$ from $active$
-% \FOR{$0 \le k \le 2 $}
-% \STATE $\alpha^{(t)}_{i,j+k} \leftarrow \alpha^{(t-1)}_{i,j} A_{i,j,j+k} B_{i,j+k}(f_t)$
-% \STATE insert $\alpha^{(t)}_{i,j+k}$ to $new\_active$ or add to the existing value
-% \ENDFOR
-% \ENDWHILE
-% \STATE $active \leftarrow top\_states(new\_active,K)$
-% \ENDFOR
-% \end{algorithmic}
-% \end{algorithm}
-% \fi
 
 \section{Experiment}
 \label{sec:experiment}
@@ -612,7 +539,7 @@ This result confirms that the computer adaptation helps improving the
 overall channel rate. In addition, we calculate the theoretical
 maximum of the channel rate under the assumption of the perfect
 recognition, denoted by $R_{ideal}$. The maximum rates are given by
-$H(\character) / \expectedDuration$. In our case, $H(\character) =
+$H(\intent) / \expectedDuration$. In our case, $H(\intent) =
 \log_2(26)$. 
 
 \begin{figure}
@@ -697,7 +624,7 @@ very similar for some letter pairs such as 'n'-'u', 'n'-'h' or
 'r'-'v'.
 
 The confusion is closely related to the conditional entropy
-$\condEntropy$. When this is no confusion, the entropy quickly
+$H(\predFinal | \intent)$. When this is no confusion, the entropy quickly
 converges to zero as demonstrated in Figure~\ref{fig:entropy_z}. This
 suggests that early termination of the writing is viable. The system
 could have notified the user to stop writing at \frame{2} and it can
@@ -707,7 +634,7 @@ to zero when at the end of the writing e.g. the entropy of 'y' in
 Figure~\ref{fig:entropy_y}.
 
 In Figure~\ref{fig:entropy}, we look closely at the evolution of
-$\predDist{t}$ of a confusable triplet: 'g', 'y' and 'q'. In
+$\pred{t}$ of a confusable triplet: 'g', 'y' and 'q'. In
 Figure~\ref{fig:entropy_g}, the probability of 'g' starts to dominate
 other contenders e.g. 's' and 'a' after \frame{3}. Similarly, in
 Figure~\ref{fig:entropy_q}, the posterior distribution evolves
@@ -800,8 +727,6 @@ letters. On the other hand, we find other letters which are recognized
 shortly after they begin. These identify inefficiencies in the coding
 process and suggests ways we can teach the user to write in a way that
 would increase the over channel rate of the system.
-
-
 
 
 % Balancing columns in a ref list is a bit of a pain because you
