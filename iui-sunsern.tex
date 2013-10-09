@@ -62,7 +62,7 @@ breaklinks=true,
 % End of preamble. Here it comes the document.
 \begin{document}
 
-\title{SIGCHI Conference Proceedings Format}
+\title{Investigating Co-adaptation in a Handwriting Recognition System}
 
 % Note that submissions are blind, so author information should be omitted
 \numberofauthors{3}
@@ -371,76 +371,85 @@ giving useful feedback to the user in the form of guidance or lessons.
 \section{Adaptive recognition algorithm}
 \label{sec:recognition_algorithm}
 
-We developed an adaptive single-character recognition algorithm for
-translating the handwriting trajectory $\writing{t}$ to one of the
-characters in $\intentSet$. By realizing that the effect of user
-adaptation can always be present, we designed our recognition
-algorithm to be able to handle the fact that the handwriting
-trajectory distribution $\writingDist$ can be different at
-different time $t$. The idea of specializing and adapting the
-recognizer for each user has been studied and shown to be effective in
-reducing the error rate~\cite{Connell2002, Matic93, Kienzle06}.
-
-At a high-level, our recognition algorithm can be described as
-follows. For each user, the algorithm creates and maintains one or
-more Markov-based models~\cite{ThomasPloetz2011} for each of the
-characters. We refer to each model as a {\em prototype}. The adaptivity
-of our algorithm comes from the re-training of the prototype set. In
-the decoding step, at each time step $t$, the algorithm calculates the
-likelihood of each character. The character with the highest
-likelihood is predicted. In addition, for our analysis, it also
-outputs the posterior probability distribution over the characters
-$\predFinal$.
-
-\subsection{Distance function and Decoding}
-
-\newcommand{\forwardprob}{\alpha^{(t)}_{i,j}}
 \newcommand{\prototypeSet}{\mathcal{P}}
 
-For each character $c \in \intentSet$, our aim is to discover
-different writing styles of $c$ and create a prototype for each of
-them. To do so, we perform a hierarchical clustering with the {\it
-  dynamic time warping} (DTW) distance~\cite{Rabiner1993} on a set of
-handwriting instances. Each handwriting instance is described by a
-sequence of feature vectors $\langle f_1, \ldots, f_T \rangle$ where
-$f_i = (x_i,y_i, dx_i,dy_i)$.  $(x_i,y_i)$ denotes the normalized
+We developed an adaptive handwriting recognition algorithm that maps a
+handwriting trajectory $\writing{t}$ to a posterior distribution over
+$\intentSet$, denoted by $\predFinal$. By realizing that the effect of
+user adaptation is likely to be present, we designed our recognition
+algorithm so that it can adapt not only to each individual user, but
+also to the changes of the handwriting trajectory distribution
+$\writingDist$ unique to each user over time. The idea of specializing
+and adapting the recognizer for each user has been studied and shown
+to be effective in reducing the error rate~\cite{Connell2002, Matic93,
+  Kienzle06}.
+
+At a high-level, our adaptive recognition system can be outlined as
+follows. For each user, the system creates and maintains one or more
+Markov-based models~\cite{ThomasPloetz2011} for each element in
+$\intentSet$. We refer to each of such models as a {\em
+  prototype}. Each prototype is a left-to-right HMM with Gaussian
+observations with each of the hidden states correponds to a sample
+point in the trajectory. We denote a set of prototypes for a user $u$
+as $\prototypeSet_u$. The adaptivity of our system comes from the
+re-training of $\prototypeSet_u$. In decoding, given a handwriting
+trajectory and a set of prototypes $\prototypeSet_u$, the system
+computes a posteior distribution $\predFinal$. When a single
+prediction is needed, the element with the maximum likelihood is
+predicted.
+
+\subsection{Features and distance function}
+
+As a preprocessing step, each instance of the handwriting trajectory
+is appended with the second order dynamics i.e. velocity. After
+preprocessing, a handwriting instance is described by a sequence of
+feature vectors $\langle f_1, \ldots, f_T \rangle$ where
+$f_i = (x_i,y_i, dx_i,dy_i)$. $(x_i,y_i)$ denotes the normalized
 touchscreen coordinate and $(dx_i,dy_i) = (\frac{x_i - x_{i-1}}{z},
 \frac{y_i - y_{i-1}}{z}) , z = \sqrt{(x_i - x_{i-1})^2 + (y_i -
   y_{i-1})^2}$ denotes the writing direction.
 
+In order to determine similarity between two handwriting instances
+or a handwriting instance and a prototype, we defined a measurement
+function based on the {\it dynamic time warping} (DTW)
+distance~\cite{Rabiner1993} which is commonly used for variable-length
+data such as handwriting and speech.
 
-Our decoding is based on the standard Bayesian inference.
-For user $u$, the algorithm maintains a set of prototypes
-$\prototypeSet_u = \{ T_1, T_2, ... , T_m\}$. The probability distribution over all
-the prototypes and all the hidden states of each prototype given the
-handwriting trajectory $\writing{T}$, or $P(T_{i,j} |\writing{T})$, is
-estimated using forward algorithm. Let $\forwardprob$ denote $P(T_{i,j} |
-\writing{T})$. Based on $\forwardprob$, the probability of prototype
-$T_i$ conditioned on $\writing{T}$ is given by $P(T_i | \writing{T}) = \sum_{j}
-\forwardprob$. 
+\subsection{Initial adaptation}
 
+The initial adaptation is critical for any intelligent system. It is
+unquestionable that the performance of any well-behaved
+intelligent system increases as the system learns more about the
+user. Many times, the users can get frustrated with the system and stop
+using it before it can fully adapt to the user.
+ 
+We address the problem of initial adaptation by leveraging the power
+of {\em the crowd}. Typically, people do have similar handwriting
+particularly when they share the same educational culture. In the very
+first interaction with the user $u$, our system has no information
+about the user and, therefore, assign a set of typical prototypes
+which has been trained using data from multiple users in the past.  We
+refer to this set of prototypes as $\prototypeSet_0$. After the first
+interaction, the system selects a set of prototypes
+$\prototypeSet_{(u,1}$ such that each prototype in the set minimizes
+the distance to the corresponding handwriting instances.
 
-
-\subsection{Prototype training}
-
-
-\subsection{Choosing best prototypes}
-
-This leverages the information from the crowd.
 
 \subsection{Adapting the prototypes over time}
 
+After the initial adaptation phase and after the user has given a few
+examples of his/her handwriting, the system performs a weighted cluster
+analysis using K-means on the data and the current prototypes in
+$\prototypeSet_{(u,i)}$ to generate a new set of prototypes
+$\prototypeSet_{(u,i+1)}$ such that the new set of prototypes minimizes the
+average inter-example distances of the same label. 
 
-Once the cluster structures are found, for each cluster, we find the
-medoid of the cluster and transform it into a prototype i.e. a
-left-to-right HMM with Gaussian observations. The transformation is
-straightforward where each hidden state corresponds to each sampled
-point in the trajectory. However, this transformation often yields a
-HMM with too many hidden states than necessary. We perform an additional
-step to reduce the number of hidden states by a series of removing and
-merging hidden states using a variant of forward-backward
-algorithm. Figure~\ref{fig:state_reduction} shows the hidden states
-before and after the reduction step.
+Sometimes, a trained prototype has too many hidden states than
+necessary. The system performs an additional step to reduce the number
+of hidden states by a series of removing and merging hidden states
+while maintaining the same recognition power, using a variant of
+forward-backward algorithm. Figure~\ref{fig:state_reduction} shows the
+hidden states before and after the reduction step.
 
 \begin{figure}[h]
   \centering
@@ -454,65 +463,43 @@ before and after the reduction step.
   \label{fig:state_reduction}
 \end{figure}
 
-From the collection of all prototypes $\prototypeSet_{all}$, we then
-select a subset of prototypes $\prototypeSet_u \subset
-\prototypeSet_{all}$ for each user $u$ such that the recognition error
-on the user-specific validation data with respect to $\prototypeSet_u$
-is minimized. For our dataset, we found that, at most 2
-prototypes are sufficient for each user-character pair. Similarly, a
-prototype set for all users (writer-independent) can be found by
-replacing the user-specific training data with the data from all users.
+\subsection{Decoding}
 
+Our decoding algorithm is based on the standard Bayesian inference.
+Given a handwriting trajectory $\writing{T}$ and the current set of
+prototypes $\prototypeSet_u$, at every time step $1 \le t \le T$, the
+algorithm computes the distance from $\writing{t}$ to each of the
+prototypes in $\prototypeSet_u$. The distances are transformed into a
+probability distribution $\pred{t}$. This decoding process is
+implemented using a dynamic programming technique which is similar in
+spirit to the forward algorithm. When a single prediction is expected,
+the algorithm returns the prediction with the maximum likelihood.
 
 
 \section{Experiment}
 \label{sec:experiment}
 
-% \iffalse
-% The user interface that we use in our experiments is presented to the
-% user in the form of a simple game. The user is presented with a
-% sequence of characters, one character at a time. When the user sees
-% the character, her goal is to write it on the touch screen as quickly
-% and as legibly as possible. The computer then classifies the character
-% and assigns a score to the user, based on the writing speed and on the
-% legibility.
-% \fi
+The main objective of our experiment is to determine and quantify the
+effect of machine adaptation and of human adaptation when the users
+interact with the system over a period of time.  We conducted an
+experiment in the format of a game where the participants were asked
+to compete in a writing game. In each session, each participant was
+presented with a random permutation of the 26 lowercase English
+alphabets i.e. $\intentSet = \left[ a \ldots z \right]$ and
+$P(\intent)$ is uniform. The objective of the game was to write the
+presented characters as quickly as possible and, more importantly, the
+handwritten characters should be recognizable by the system. A score,
+which is the average {\it channel rate} of the session, was given to
+the user right after each session to reflect the performance of the
+session. There were 15 participants in this experiment. We did not
+control past experience of the participants. Some of them had more
+experience with touch screens than others. Each participant was asked
+to play the writing game, which is an implementation our adaptive
+recognition algorithm on the Apple iPads and iPhones, for at least 20
+sessions over multiple days in his/her own pace.
 
-We conducted an experiment in the format of a game where the
-participants were asked to compete in a writing game. In each session,
-each participant was presented with a random permutation of the 26
-lowercase English alphabets i.e. $\intentSet = \left[ a \ldots z \right]$
-and $P(\intent)$ is uniform. The objective of the game was to write
-the presented characters as quickly as possible and, more importantly,
-the handwritten characters should be recognizable by the system. A
-score, which is a function of {\it channel rate}, was given to the
-user right after each session to reflect the performance of the
-session. There were 9 participants in this experiment. Each participant was
-asked to play the writing game, which is an implementation our adaptive
-recognition algorithm on Apple iPads, for at least
-20 sessions over multiple days in his/her own pace. 
 
-Prior to the experiment, we trained a prototype set $\prototypeSet_0$
-with a small set of handwriting data provided by the authors. We did
-not expect $\prototypeSet_0$ to work well for every user but it is
-sufficient as a starting point. Let $\prototypeSet_{(u,i)}$ denote the
-prototype set for user $u$ in session $i$. For every user $u$,
-$\prototypeSet_{(u,1)}$ was initialized to $\prototypeSet_0$. During
-the experiment, the system frequently updated the prototype set
-$\prototypeSet_{(u,i+1)}$ using user-specific data collected from
-previous sessions. The update happened every 2-5 sessions
-depending on the availability of the training server. 
-
-% \iffalse
-% \begin{figure}
-%   \centering
-%   \includegraphics[width=0.3\textwidth] {figures/uright3.png}
-%   \label{fig:screen_shots}
-%   \caption{GUI of the writing game on Apple iPad.}
-% \end{figure}
-% \fi
-
-\section{Results}
+\section{Results and discussion}
 \label{sec:results}
 
 The experiment was set up to demonstrate a condition called {\em
@@ -521,9 +508,9 @@ adapt together. We denote this condition $R_{adapt}$. The average
 channel rates per session of each user using are shown in
 Figure~\ref{fig:channel_rate_adapt}. 
 
-To investigate the effect of co-adaptation, we create another
+To investigate the effect of co-adaptation, we create a controlled 
 condition called $R_{fixed}$ where the computer was not allowed to
-adapt. In other words, we ran a simulation to figure out what the
+adapt with the user. In other words, we ran a simulation to figure out what the
 channel rates would have been if the prototype sets were never changed
 from $\prototypeSet_0$. The results are shown in
 Figure~\ref{fig:channel_rate_fixed}.
@@ -532,34 +519,56 @@ Although the prototype set was not changing in $R_{fixed}$, we observe
 that channel rate increases over the sessions. The paired t-test
 indicates a significant difference between the average channel rate in
 the first 5 sessions and the average channel rate in the last 5
-sessions ($p < 0.001$). This suggests that the users improve the
+sessions ($p < 0.0011$). This suggests that the users improve the
 handwriting on their own. We call this effect {\em user
-  adaptation}. 
+  adaptation}.
 
-In Figure~\ref{fig:channel_rate_per_user}, we compare $R_{adapt}$ and
-$R_{fixed}$ for each user. We found that the channel rate of
-$R_{adapt}$ is significantly higher than that of $R_{fixed}$ with $p = 0.007$.
-This result confirms that the computer adaptation helps improving the
-overall channel rate. In addition, we calculate the theoretical
-maximum of the channel rate under the assumption of the perfect
-recognition, denoted by $R_{ideal}$. The maximum rates are given by
-$H(\intent) / \expectedDuration$. In our case, $H(\intent) =
-\log_2(26)$. 
+Figure~\ref{fig:duration} and Figure~\ref{fig:mutual_information}
+reveal that the major contribution of {\em user adaptation} comes from
+the fact that the users writing faster in the first 5 sessions
+compared to the last 5 sessions ($p < 0.0001$), and not because of the
+system recieved more information from the user ($p = 0.9723$). This
+result is expected according to the power law of practice~\cite{Newell1981}.
 
 \begin{figure}
   \centering
-  \begin{subfigure}[b]{0.3\textwidth}
-    \includegraphics[width=\textwidth]{figures/IUI_BPS_p_adapt.pdf}
+  \begin{subfigure}[b]{\columnwidth}
+    \includegraphics[width=\columnwidth]{figures/IUI_duration_p_adapt.pdf}
+    \caption{Writing duration}
+    \label{fig:duration}
+  \end{subfigure}
+  \begin{subfigure}[b]{\columnwidth}
+    \includegraphics[width=\columnwidth]{figures/IUI_total_logloss_p_first.pdf}
+    \caption{Mutual information}
+    \label{fig:mutual_information}
+  \end{subfigure}
+\end{figure}
+
+
+In Figure~\ref{fig:channel_rate_per_user}, we compare $R_{adapt}$ and
+$R_{fixed}$ for each user. We found that the channel rate of
+$R_{adapt}$ is significantly higher than that of $R_{fixed}$ with $p <
+0.0006$.  This result confirms that the computer adaptation helps
+improving the overall channel rate. In addition, we calculate the
+theoretical maximum of the channel rate under the assumption of the
+perfect recognition, denoted by $R_{ideal}$. The maximum rates are
+given by $H(\predFinal) / \expectedDuration$ and we approximated $H(\predFinal) =
+\log_2(26)$.
+
+\begin{figure}
+  \centering
+  \begin{subfigure}[b]{\columnwidth}
+    \includegraphics[width=\columnwidth]{figures/IUI_BPS_p_adapt.pdf}
     \caption{$R_{adapt}$}
     \label{fig:channel_rate_adapt}
   \end{subfigure}
-  \begin{subfigure}[b]{0.3\textwidth}
-    \includegraphics[width=\textwidth]{figures/IUI_BPS_p_first.pdf}
+  \begin{subfigure}[b]{\columnwidth}
+    \includegraphics[width=\columnwidth]{figures/IUI_BPS_p_first.pdf}
     \caption{$R_{fixed}$}
     \label{fig:channel_rate_fixed}
   \end{subfigure}
-  \begin{subfigure}[b]{0.3\textwidth}
-    \includegraphics[width=\textwidth]{figures/IUI_BPS_diff_p_first.pdf}
+  \begin{subfigure}[b]{\columnwidth}
+    \includegraphics[width=\columnwidth]{figures/IUI_BPS_diff_p_first.pdf}
     \caption{$R_{adapt} - R_{fixed}$}
     \label{fig:channel_rate_diff}
   \end{subfigure}
@@ -578,35 +587,12 @@ $H(\intent) / \expectedDuration$. In our case, $H(\intent) =
   \label{fig:channel_rate_per_user}
 \end{figure}
 
-\iffalse
-\begin{table}[t]
-\caption{Average channel rate (bps)}
-\label{tab:co_adaptation}
-\begin{center}
-\begin{tabular}{cccc}
- \multicolumn{2}{c}{$R_{adapt}$}  &\multicolumn{2}{c} {$R_{fixed}$}\\
- \\ \hline \\
-Initial bps & terminal bps & Initial bps & terminal bps \\
-\\ \hline \\
-6.42 (1.16) & 7.98 (1.39) & 6.14 (1.21) & 7.50 (1.36) \\
-\end{tabular}
-\end{center}
-\end{table}
-\fi
-
 In the case of perfect recognition, a simple way to increase the
 channel rate is to increase the size of the character set
 $\intentSet$. However, in reality, doing so can lead to a
 recognition error rate which impairs the channel rate. An interesting
 future direction is to find a character set that would maximize the channel
 rate. 
-
-With the English lowercase characters, the average channel rate over
-all users of our system was 6.15 bps.  We repeated the
-experiment using digits as the character set $\intentSet = \left[ 0
-\ldots 9 \right]$ and found that the average channel rate was reduced to
-4.78 bps. Figure~\ref{fig:histogram_channel_rate} shows
-the average channel rate of each character. 
 
 Figure~\ref{fig:histogram_english} reveals the efficiency of each
 letter for our handwriting channel. Characters with complex stokes,
@@ -615,17 +601,17 @@ strokes such as 'c' ,'o', 'l'.
 
 \subsection{Confusion and the conditional entropy}
 
-In addition to the experiment, we performed a detailed analysis on
-the recognition errors made by the system. Specifically, we computed a
-confusion matrix based on the data from the experiment. The confusion
-matrix indicated that 99\% of the mistakes concentrate among 33 pairs
-of prototypes out of the total of 2278 pairs. This suggests that the
-confusions only happen between a few pairs of
-prototypes. Figure~\ref{fig:prototypes} shows some of the confusion
-pairs and the handwritten examples that were misrecognized. By
-inspection, we found that the confused handwritten characters were
-very similar for some letter pairs such as 'n'-'u', 'n'-'h' or
-'r'-'v'.
+In addition to the experiment, we performed a detailed analysis on the
+recognition errors made by the system to visualize and understand
+about the mistakes. Specifically, we computed a confusion matrix based
+on the data from the experiment. The confusion matrix indicated that
+99\% of the mistakes concentrate among 33 pairs of prototypes out of
+the total of 2278 pairs. This suggests that the confusions only happen
+between a few pairs of prototypes. Figure~\ref{fig:prototypes} shows
+some of the confusion pairs and the handwritten examples that were
+misrecognized. By inspection, we found that the confused handwritten
+characters were very similar for some letter pairs such as 'n'-'u',
+'n'-'h' or 'r'-'v'.
 
 The confusion is closely related to the conditional entropy
 $H(\predFinal | \intent)$. When this is no confusion, the entropy quickly
@@ -636,6 +622,16 @@ still recognize the partial handwriting as a 'z'. On the other hand,
 when there is a confusion, the entropy does not necessarily converge
 to zero when at the end of the writing e.g. the entropy of 'y' in
 Figure~\ref{fig:entropy_y}.
+
+\begin{figure*}
+  \centering
+  \includegraphics[width=0.9\textwidth]{figures/confusion.pdf}
+  \caption{The confusion between two prototypes (circle nodes)
+    is represented by an edge. Some of the confusing examples are
+    shown in square nodes. Only confusable prototypes are shown. }
+  \label{fig:prototypes}
+\end{figure*}
+
 
 In Figure~\ref{fig:entropy}, we look closely at the evolution of
 $\pred{t}$ of a confusable triplet: 'g', 'y' and 'q'. In
@@ -758,5 +754,5 @@ would increase the over channel rate of the system.
 % uncomment the following line:
 % \small
 \bibliographystyle{acm-sigchi}
-\bibliography{iui-sunsern}
+\bibliography{library}
 \end{document}
