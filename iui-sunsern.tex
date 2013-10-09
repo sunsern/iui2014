@@ -1,7 +1,7 @@
 \documentclass{sigchi}
 
 % Remove or comment out these two lines for final version
-\toappearbox{\Large Submitted to CHI'13. \\Do not cite, do not circulate.}
+\toappearbox{\Large Submitted to IUI'14. \\Do not cite, do not circulate.}
 \pagenumbering{arabic}% Arabic page numbers for submission. 
 
 % Use \toappear{...} to override the default ACM copyright statement (e.g. for preprints).
@@ -118,56 +118,56 @@ and of human adaptation.
 \keywords{
 	Guides; instructions; author's kit; conference publications;
 	keywords should be separated by a semi-colon.
-	\\\textcolor{red}{Mandatory section to be included in your final version.}
+%	\\\textcolor{red}{Mandatory section to be included in your final version.}
 }
 
 \category{H.5.m.}{Information Interfaces and Presentation (e.g. HCI)}{Miscellaneous
-\\
-\textcolor{red}{See: \url{http://www.acm.org/about/class/1998/}
-for more information and the full list of ACM classifiers and descriptors. 
-Mandatory section: On the submission page
-only the classifiers' letter-number combination will need to be entered.}
+%\\
+%\textcolor{red}{See: \url{http://www.acm.org/about/class/1998/}
+%for more information and the full list of ACM classifiers and descriptors. 
+%Mandatory section: On the submission page
+%only the classifiers' letter-number combination will need to be entered.}
 }
 
 \terms{
 	Human Factors; Design; Measurement. 
 	If you choose more than one ACM General Term, 
 	separate the terms with a semi-colon.
-\\
-\textcolor{red}{If you choose more than one ACM General Term, 
-separate the terms with a semi-colon. See list of ACM terms at:
-\url{http://www.sheridanprinting.com/sigchi/generalterms.htm}.
-Optional section to be included in your final version.}
+%\\
+%\textcolor{red}{If you choose more than one ACM General Term, 
+%separate the terms with a semi-colon. See list of ACM terms at:
+%\url{http://www.sheridanprinting.com/sigchi/generalterms.htm}.
+%Optional section to be included in your final version.}
 }
 
 \section{Introduction}
 
-There is a large asymmetry in human-computer interfaces. The computer
-to human channel has a much higher bandwidth than the human to
-computer bandwidth. With the progress of computers with small form
-factor such as smart phones and tablets, this limitation is becoming
-increasingly problematic.
+One of the challenges brought on by the miniaturization of mobile
+computing devices such as smart phones and tablets is the difficulty of
+entering information into the device. The communication bandwidth from
+the device to the human, utilizing high-resolution screens and high
+fidelity sound, is very high. However, the bandwidth from the human to
+the device is severely constrained by the size of our fingers and by
+the difficulty of performing voice recognition in noisy environments.
 
-The most common approach for entering textual information on a smart
-phone is soft-keyboard where input rates of around 20 - 25 words
-per minute (WPM) have been reported\cite{Arif2009,
-  Castellucci2011}. These rates are for English. For languages with
-larger number of characters such as Thai (49 characters), Japanese or
-Chinese (hundreds to thousands of letters, depending on the context),
-soft-keyboard becomes impractical. Even when using English, the need
-to use digits or special characters "!?\&\$\#\@\;\:\,\." can
-significantly decrease the typing speed.
+As the screen real estate becomes scarce, the standard soft-keyboard
+can only fit up to about 40 fingertip-sized keys on one screen. While
+40 keys are sufficient for languages with a small set of characters
+such as English, it is not suitable for languages with more characters
+such as Thai or Chinese which contains more than 60 and thousands of
+different characters respectively. For such languages, as well as in
+the multilingual settings, the users are required to either repeatedly
+switch between different keyboard layouts in order to find the desired
+character or alternatively.
 
 \newcommand{\tm}{\textsuperscript{\textregistered}~}
 
 Many alternatives to the standard soft-keyboard exist. For example,
 Swype\tm provides a method for tracing a path between keyboard keys
 and lifting the finger from the screen at the end of each
-word. TikiNotes\tm uses a keyboard with 9 large keys, each
-corresponding to several letters or an auto-completion
-alternative. Dasher~\cite{Garrett2003} is a particularly innovative
-method where typing is replaced by using a joystick-like pointer to
-fly through clouds of characters. Finally, there are handwriting
+word. Dasher~\cite{Garrett2003} is a particularly innovative method
+where typing is replaced by using a joystick-like pointer to fly
+through clouds of characters. Finally, there are handwriting
 recognition software that allow the user to enter information using
 natural handwriting.
 
@@ -178,36 +178,29 @@ that the contender is always a person who can enter information faster
 than the current record holder, most likely as a result of extensive
 training. In other words, {\em user adaptation} cannot be ignored.
 
-To evaluate the efficacy of a particular data entry method it is
+To evaluate the efficiency of a particular data entry method, it is
 therefore necessary to measure the performance of each user over a
 sufficiently long period of time so that the performance of the user
-stabilizes. As we are interested in machine learning methods we arrive
+stabilizes. As we are interested in machine learning methods, we arrive
 at the interesting situation in which both the computer and the human
 adapt over time in an effort to maximize the input rate of the
 data entry method. We refer to this situation as {\em co-adaptation}.
+
+Designing an intelligent system that co-adapts with the users is a
+challenging problem on its own~\cite{Hook2000, Maes1994, Lim2009a}.
+Our goal in this paper is not to address those challenges, but rather
+to focus on characterizing the impact of machine adaptation and of
+human adaptation in the context of handwriting recognition.
  
-Handwriting data is usually analyzed one ``unit'' at a time where
-``unit'' can be a stroke, a chracter, a word or even a
-sentence. In this work, we propose an alternative analysis where the
-data is analyzed in fixed intervals of time. We consider the process
-of writing as a process of through which the intended letter is
-disambiguated from the other possible letters. 
-
-In this paper, we focus on handwriting recognition systems where a user
-sends the information to the computer using her natural
-handwriting. To quantify the rate of information transmitted, we
-compute the mutual information between the intended character and the
-decoded character distribution and divide it by the length of time it
-takes to complete writing the letter. This ratio defines the data rate
-in the information theoretic sense.  The exact definition will be
-given in Section~\ref{sec:channel}.
-
 The paper is organized as follows. In Section~\ref{sec:channel}, we
-describe the handwriting channel and define the information rate. In
-Section~\ref{sec:recognition_algorithm}, we present our recognition
-algorithm. In Section~\ref{sec:experiment} and
+propose an information-theoretic framework for quantifying the
+efficiency of a handwriting system where the system includes both the
+user and the computer. In Section~\ref{sec:recognition_algorithm}, we
+describe our adaptive handwriting recognition algorithm that we
+developed for our experiment. In Section~\ref{sec:experiment} and
 Section~\ref{sec:results}, we describe the experiment and present the
-results respectively. Finally, we draw some conclusions in
+results in terms of the performance measures derived from the proposed
+framework. Finally, we draw some conclusions in
 Section~\ref{sec:conclusions}.
 
 
@@ -215,9 +208,13 @@ Section~\ref{sec:conclusions}.
 \label{sec:channel}
 
 Unlike typing, which transmits information to the computer at discrete
-time points, handwriting has to be described as a continuous time
-process. We can describe the process as a communication channel in
-continuous time as depicted in Figure~\ref{fig:hwr_channel}.
+time points, handwriting continuously transmits information as the
+writer creates the trajectory. Traditionally, handwriting data is
+analyzed one ``unit'' at a time where ``unit'' can be a stroke, a
+chracter, a word or even a sentence. In this work, we propose an
+alternative analysis where the data is analyzed in fixed intervals of
+time. We consider the process of writing as a process through which
+the intended letter is disambiguated from the other possible letters.
 
 % input
 \newcommand{\intent}{M}
@@ -225,43 +222,37 @@ continuous time as depicted in Figure~\ref{fig:hwr_channel}.
 \newcommand{\intentDist}{\mathcal{M}}
 % output
 \newcommand{\pred}[1]{\mathcal{Q}_{#1}}
-\newcommand{\predFinal}{\pred{final}}
+\newcommand{\predFinal}{\pred{\mathrm{final}}}
 % trajectory
 \newcommand{\writing}[1]{W_{1:{#1}}}
-\newcommand{\writingDist}{P(\bar{W} | \intent)}
+\newcommand{\writingVec}{\overline{W}}
+\newcommand{\writingDist}{P(\writingVec | \intent)}
 % misc
 \newcommand{\tFinal}{T}
-\newcommand{\MI}{I(\intent ; \predFinal)}
-\newcommand{\EMI}{\hat{I}(\intent ; \predFinal)}
-\newcommand{\session}{\mathcal{S}}
-\newcommand{\bps}{R}
-\newcommand{\logloss}{\mathcal{L}}
 \newcommand{\expectedDuration}{\mathbb{E} \left[\tFinal\right]}
 \newcommand{\condEntropy}{H(\predFinal | \intent)}
 
 We formalize this process using the concept of a communication
 channel~\cite{Shannon1948}.  Let $\intentSet$ denote the set of all
 possible input. Technically, $\intentSet$ can be a set of sentences, a
-set of words, or a set of characters depending on the designed of the
-handwriting recognition system. Without loss of generality, we assume
-that $\intentSet$ is a set of 26 English characters and ignore
-dependencies between characters due to the language model or due to
-the co-articulation effects between neighboring handwritten
-characters.
+set of words, or a set of characters. Without loss of generality, in
+this work, we assume that $\intentSet$ is a set of 26 English
+characters. We also ignore dependencies between characters due to
+the language model and due to the co-articulation effects between
+neighboring handwritten characters.
 
 As shown in Figure~\ref{fig:hwr_channel}, the channel is comprised of
 two separate processes. First, the handwriting process is the process
-of which the user translates an intent $\intent$ into a series of hand
-movements which is sampled at some rate to create a discrete time
-trajectory: $\writing{T} = \left[ (x_1,y_1), \ldots, (x_T,y_T)
-\right]$. In other words, this process {\em encodes} the intent
-$\intent$ into a trajectory $\writing{T}$. We can model the
-variability in the encoding with the distribution $\writingDist$. 
-
-The second process is the process of decoding the handwriting trajectory
-into the original intent. For each time step $1 \le t \le T$, the process
-maps a trajectory $\writing{t}$ to a distribution over $\intentSet$,
-$\pred{t}$, which is also the output of the channel.
+of which the user translates an intent $\intent \in \intentSet$ into a
+series of hand movements which is sampled at some rate to create a
+discrete time trajectory: $\writing{T} = \left[ (x_1,y_1), \ldots,
+  (x_T,y_T) \right]$. In other words, this process {\em encodes} the
+intent $\intent$ into a trajectory $\writing{T}$. The distribution
+$\writingDist$ denotes the variability of the encoding process. The
+second process is the recongition process that decodes the handwriting
+trajectory into the original intent. For each time step $1 \le t \le
+T$, the process maps a trajectory $\writing{t}$ to a distribution over
+$\intentSet$, denoted by $\pred{t}$.
 
 \begin{figure}
   \centering
@@ -271,17 +262,17 @@ $\pred{t}$, which is also the output of the channel.
 \end{figure}
 
 Let $\tFinal$ and $\predFinal$ denote the time and the posterior
-distribution when the user finishes writing the trajectory respectively.
-According to the theory of channel capacity, the information
-transmitted through the channel is quantified by the mutual information between the
-input $\intent$ and the decoding posterior $\predFinal$, $I(\intent ;
-\predFinal)$. We now unpack this expression.  We define the mean
-posterior of $\predFinal$ conditioned on $\intent$ and the average
-posterior distribution as follows.
+distribution when the user finishes writing the trajectory
+respectively.  According to the theory of channel capacity, the
+information transmitted through the channel is quantified by the
+mutual information between the input $\intent$ and the decoding
+posterior $\predFinal$, denoted by $I(\intent ; \predFinal)$. We
+define the mean posterior of $\predFinal$ conditioned on $\intent$ and
+the average posterior distribution as follows.
 \[
-P(\predFinal | \intent)=
-\int_{\bar{w} \sim \writingDist} { P(\predFinal | \bar{w})
-P(\bar{w} | \intent)} 
+P(\predFinal | \intent) =
+\int_{\writingVec \sim \writingDist} { P(\predFinal | \writingVec)
+P(\writingVec | \intent)} 
 \]
 \[
 P(\predFinal)
@@ -292,23 +283,42 @@ P(\intent = m) P(\predFinal | \intent = m)
 Given these two expressions, we can define the mutual information
 between the character $\intent$ and the decoding $\predFinal$ to be 
 \[
-I(\intent ; \predFinal) = H(\predFinal) - \sum_{m \in \intentSet})
-P(\intent = m) H(\predFinal | \intent)
+I(\intent ; \predFinal) = H(\predFinal) - \sum_{m \in \intentSet}
+P(\intent = m) H(\predFinal | \intent = m)
 \]
 where the entropy of $\predFinal$ is defined as
 \[
-H(\predFinal) = -\sum_{m in \intentSet} {
+H(\predFinal) = -\sum_{m \in \intentSet} {
 P(\predFinal = m) \log_2 P(\predFinal = m)}
 \]
 Now we define the channel rate to be 
 \begin{align}
 \label{eq:channel_rate}
-R_{MI}(\intent, \predFinal) 
+R_{MI}
 = 
 \frac{I( \intent ;  \predFinal)}{\expectedDuration}
 \end{align}
 
-The channel rate $R_{MI}$ yields a high value as long as $P(\predFinal |
+The channel rate $R_{MI}$ is not suitable for practical use for two
+reasons. First, the estimates of $R_{MI}$ relies on the estimates of
+$H(\predFinal | \intent)$ which typically require an extensive amount
+of data. Secondly, suppose the original intent is $m$, $R_{MI}$ yeild a high value as long as
+$P(\predFinal | \intent = m)$ concentrates on some intent $o$ regardless
+of whether $o = m$.  We propose an alternative to the $R_{MI}$, called
+$R_{LL}$, based on the idea of log loss.
+\[
+R_{LL} = \frac{H(\predFinal) - \sum_{m \in \intentSet}
+P(\intent = m) (-\log_2 P(\predFinal = m | \intent = m))}{\expectedDuration}
+\]
+
+
+
+
+
+
+
+
+yields a high value as long as $P(\predFinal |
 \intent)$ concentrates on some intent. We propose another measure of
 the channel rate $R_{logloss}$ based on the idea of log loss that
 also penalizes incorrectly concentrated distributions.
