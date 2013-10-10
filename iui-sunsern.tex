@@ -95,24 +95,30 @@ breaklinks=true,
 \maketitle
 
 \begin{abstract}
-Handwriting recognition is a natural and versatile method for data
-entry, especially on mobile devices and devices with touch
-screens. However, as handwriting is highly variable, it is difficult
-to design handwriting recognizers that perform well for everyone. A
-natural solution is to use machine learning to adapt the recognizer to
-the user. One complicating factor is that, as the computer is adapting
-to the user, the user is also adapting to the computer. The
-contributions of this paper are in three complementary
-directions. First, we devise an information-theoretic framework for
-quantifying the efficiency of a handwriting system where the system
-includes both the user and the computer. From this framework, we
-derive two performance measures that are used to gamify handwriting
-adaptation. Second, we develop and deploy an adaptive handwriting
-recognition system in the context of a game that runs on iOS
-devices. Finally, we perform a statistical analysis of the system’s
-performance on the data collected from 15 different users over
-multiple sessions and characterize the impact of machine adaptation
-and of human adaptation.
+  Handwriting is a natural and versatile method for human-computer
+  interaction, especially on small mobile devices such as smart
+  phones. However, as handwriting varies significantly from person to
+  person, it is difficult to design handwriting recognizers that
+  perform well for all users. A natural solution is to use machine
+  learning to adapt the recognizer to the user. One complicating
+  factor is that, as the computer adapts to the user, the user also
+  adapts to the computer and probably changes their handwriting. This
+  paper investigates the dynamics of co-adaptation, a process in which
+  both the computer and the the user are adapting their behaviors in
+  order to improve the speed and accuracy of the communication through
+  handwriting.
+
+  The contributions of this paper are in three complementary
+  directions. First, we devise an information-theoretic framework for
+  quantifying the efficiency of a handwriting system where the system
+  includes both the user and the computer. From this framework, we
+  derive two performance measures. Second, we combine these
+  performance measures with an adaptive handwriting recognition system
+  to create a collaborative game for improving the communication
+  through handwriting over time. Finally, we perform a statistical
+  analysis of the system’s performance on the data collected from 15
+  different users over multiple sessions and characterize the impact
+  of machine adaptation and of human adaptation.
 \end{abstract}
 
 \keywords{
@@ -123,7 +129,6 @@ and of human adaptation.
 }
 
 \category{H.5.2}{Information Interfaces and Presentation (e.g. HCI)}{User Interfaces
-%\\
 %\textcolor{red}{See: \url{http://www.acm.org/about/class/1998/}
 %for more information and the full list of ACM classifiers and descriptors. 
 %Mandatory section: On the submission page
@@ -143,6 +148,9 @@ and of human adaptation.
 
 \newtheorem{theorem}{Theorem}   
 \newtheorem{lemma}[theorem]{Lemma}
+
+% Force a column break
+\vfill
 
 \section{Introduction}
 
@@ -213,7 +221,7 @@ Unlike typing, which transmits information to the computer at discrete
 time points, handwriting continuously transmits information as the
 writer creates the trajectory. Traditionally, handwriting data is
 analyzed one ``unit'' at a time where ``unit'' can be a stroke, a
-chracter, a word or even a sentence. In this work, we propose an
+character, a word or even a sentence. In this work, we propose an
 alternative analysis where the data is analyzed in fixed intervals of
 time. We consider the process of writing as a process through which
 the intended letter is disambiguated from the other possible letters.
@@ -251,12 +259,12 @@ discrete time trajectory: $\writing{T} = \left[ (x_1,y_1), \ldots,
   (x_T,y_T) \right]$. In other words, this process {\em encodes} the
 intent $\intent$ into a trajectory $\writing{T}$. The distribution
 $\writingDist$ denotes the variability of the encoding process. The
-second process is the recongition process that decodes the handwriting
+second process is the recognition process that decodes the handwriting
 trajectory into the original intent. For each time step $1 \le t \le
 T$, the process maps a trajectory $\writing{t}$ to a distribution over
 $\intentSet$, denoted by $\pred{t}$.
 
-\begin{figure}
+\begin{figure}[!t]
   \centering
   \includegraphics[width=0.9\columnwidth]{figures/hwr_channel.pdf}
   \caption{A summary of the handwriting recognition channel.}
@@ -313,8 +321,8 @@ Now we define the channel rate to be
 The channel rate $\RMI$ is not suitable for practical implementation
 for two reasons. First, the estimates of $\RMI$ relies on the
 estimates of $H(\predFinal | \intent)$ which typically require an
-extensive amount of data. Secondly, suppose the original intent is
-$m$, $\RMI$ yeilds a high value as long as $P(\predFinal | \intent =
+extensive amount of data. Second, suppose the original intent is
+$m$, $\RMI$ yields a high value as long as $P(\predFinal | \intent =
 m)$ concentrates on some intent $n$ regardless of whether $n = m$.  We
 propose an alternative to the $\RMI$, called $\RLL$, based on the idea
 of log loss. We define $\RLL$ to be
@@ -329,7 +337,7 @@ of log loss. We define $\RLL$ to be
 
 \begin{lemma}
 \label{lemma:bound}
-Let $P_{i,j}$ denote $P(\predFinal = i | \intent = j)$. For any intent $m \in \intentSet$ and $a = -\log_2 P_{m,m}$, then 
+Let $P_{i,j}$ denote $P(\predFinal = i | \intent = j)$. For any intent $m \in \intentSet$ and $a = -\log_2 P_{m,m}$,  
 \[ H(\predFinal | \intent=m) \leq a + a^{-1} + \log_2
 (|\intentSet|-1) \]
 \end{lemma}
@@ -357,13 +365,14 @@ bound each term on the right hand side as follows.
 \]
 \end{proof}
 
-From Lemma~\ref{lemma:bound}, it follows that when $-\log_2
-P(\predFinal = m | \intent = m)$ is small then the conditional entropy
+From Lemma~\ref{lemma:bound}, it follows that when $(-\log_2
+P(\predFinal = m | \intent = m))$ is small then the conditional entropy
 $H(\predFinal | \intent)$ is also small. As a result, the mutual
 information $I( \intent ; \predFinal)$ will be close to its maximal
 possible value of $H(\predFinal)$. In other words, the log loss
-$-\log_2 P(\predFinal = m | \intent = m)$ provides an upper bound for
-the conditional entropy $H(\predFinal | \intent)$.
+$(-\log_2 P(\predFinal = m | \intent = m))$ provides an upper bound for
+the conditional entropy $H(\predFinal | \intent)$. For the remaining
+of this paper, we refer to $\RLL$ as {\em the channel rate}.
 
 Intuitively, the channel rate is a measure that quantifies both
 accuracy and speed of a handwriting recognition channel at the same
@@ -416,12 +425,12 @@ follows. For each user, the system creates and maintains one or more
 Markov-based models~\cite{ThomasPloetz2011} for each element in
 $\intentSet$. We refer to each of such models as a {\em
   prototype}. Each prototype is a left-to-right HMM with Gaussian
-observations with each of the hidden states correponds to a sample
+observations with each of the hidden states corresponds to a sample
 point in the trajectory. Let $\prototypeSet_u$ denote a set of
 prototypes for a user $u$. The adaptivity of our system comes from the
 re-training of $\prototypeSet_u$. In decoding, given a handwriting
 trajectory and a set of prototypes $\prototypeSet_u$, the system
-computes a posteior distribution $\predFinal$ and, when a single
+computes a posterior distribution $\predFinal$ and, when a single
 prediction is needed, the element with the maximum likelihood is
 predicted.
 
@@ -479,7 +488,7 @@ while maintaining the same recognition power, using a variant of
 forward-backward algorithm. Figure~\ref{fig:state_reduction} shows the
 hidden states before and after the reduction step.
 
-\begin{figure}
+\begin{figure}[!t]
   \centering
   \includegraphics[width=0.9\columnwidth] {figures/state_reduction.png}
   \caption{The hidden state reduction process is applied to each
@@ -548,54 +557,8 @@ it is sufficient to demonstrate our point.
 
 \section{Results and discussion}
 \label{sec-results}
-
-The average channel rates per session of the two conditions $\RAdapt$
-and $\RFixed$ are shown in Figure~\ref{fig:channel_rate_adapt} and
-Figure~\ref{fig:channel_rate_fixed} respectively.
-
-Although the prototype set was not changing in $\RFixed$, we observe
-that channel rate increases over the sessions. The paired t-test
-indicates a significant difference between the average channel rate in
-the first 5 sessions and the average channel rate in the last 5
-sessions ($p < 0.0011$). This suggests that the users improve the
-handwriting on their own. We call this effect {\em user
-  adaptation}.
-
-Figure~\ref{fig:duration} and Figure~\ref{fig:mutual_information}
-reveal that the major contribution of {\em user adaptation} comes from
-the fact that the users write faster in the last 5 sessions
-compared to the first 5 sessions ($p < 0.0001$), and not because of the
-system recieved more information from the user ($p = 0.9723$). This
-result is as expected according to the law of practice~\cite{Newell1981}.
-
-\begin{figure}
-  \centering
-  \begin{subfigure}[b]{\columnwidth}
-    \includegraphics[width=\columnwidth]{figures/IUI_duration_p_adapt.pdf}
-    \caption{Writing duration}
-    \label{fig:duration}
-  \end{subfigure}
-  \begin{subfigure}[b]{\columnwidth}
-    \includegraphics[width=\columnwidth]{figures/IUI_total_logloss_p_first.pdf}
-    \caption{Mutual information}
-    \label{fig:mutual_information}
-  \end{subfigure}
-  \caption{The average writing time per session and the average mutual
-    information per session under the condition $\RFixed$.}
-\end{figure}
-
-
-In Figure~\ref{fig:channel_rate_per_user}, we compare $\RAdapt$ and
-$\RFixed$ for each user. We found that the channel rate of
-$\RAdapt$ is significantly higher than that of $\RFixed$ with $p <
-0.0006$.  This result confirms that the computer adaptation helps
-improving the overall channel rate. In addition, we calculate the
-theoretical maximum of the channel rate under the assumption of the
-perfect recognition, denoted by $\RIdeal$. The maximum rates are
-given by $H(\predFinal) / \expectedDuration$ and we approximated $H(\predFinal) =
-\log_2(26)$.
-
-\begin{figure}
+ 
+\begin{figure}[!t]
   \centering
   \begin{subfigure}[b]{\columnwidth}
     \includegraphics[width=\columnwidth]{figures/IUI_BPS_p_adapt.pdf}
@@ -618,13 +581,65 @@ given by $H(\predFinal) / \expectedDuration$ and we approximated $H(\predFinal) 
     presence of machine learning. }
 \end{figure}
 
-\begin{figure}
+The average channel rates per session of the two conditions $\RAdapt$
+and $\RFixed$ are shown in Figure~\ref{fig:channel_rate_adapt} and
+Figure~\ref{fig:channel_rate_fixed} respectively.
+
+Although the prototype set was not changing in $\RFixed$, we observe
+that channel rate increases over the sessions. The paired t-test
+indicates a significant difference between the average channel rate in
+the first 5 sessions and the average channel rate in the last 5
+sessions ($p < 0.0011$). This suggests that the users improve the
+handwriting on their own. We call this effect {\em user
+  adaptation}.
+
+Figure~\ref{fig:duration} and Figure~\ref{fig:mutual_information}
+reveal that the major contribution of {\em user adaptation} comes from
+the fact that the users write faster in the last 5 sessions
+compared to the first 5 sessions ($p < 0.0001$), and not because of the
+system received more information from the user ($p = 0.9723$). This
+result is as expected according to the law of practice~\cite{Newell1981}.
+
+In Figure~\ref{fig:channel_rate_per_user}, we compare $\RAdapt$ and
+$\RFixed$ for each user. We found that the channel rate of
+$\RAdapt$ is significantly higher than that of $\RFixed$ with $p <
+0.0006$.  This result confirms that the computer adaptation helps
+improving the overall channel rate. In addition, we calculate the
+theoretical maximum of the channel rate under the assumption of the
+perfect recognition, denoted by $\RIdeal$. The maximum rates are
+given by $H(\predFinal) / \expectedDuration$ and we approximated $H(\predFinal) =
+\log_2(26)$.
+
+\begin{figure}[!t]
   \centering
-  \includegraphics[width=.9\columnwidth]{figures/IUI_user_summary.pdf}   
+  \begin{subfigure}[b]{\columnwidth}
+    \includegraphics[width=\columnwidth]{figures/IUI_duration_p_adapt.pdf}
+    \caption{Writing duration}
+    \label{fig:duration}
+  \end{subfigure}
+  \begin{subfigure}[b]{\columnwidth}
+    \includegraphics[width=\columnwidth]{figures/IUI_total_logloss_p_first.pdf}
+    \caption{Mutual information}
+    \label{fig:mutual_information}
+  \end{subfigure}
+  \caption{The average writing time per session and the average mutual
+    information per session under the condition $\RFixed$.}
+\end{figure}
+
+\begin{figure}[!t]
+  \centering
+  \includegraphics[width=.95\columnwidth]{figures/IUI_user_summary.pdf}   
   \caption{The average channel rate of each user in $\RAdapt$ and
     $\RFixed$. $\RIdeal$ shows the maximum channel rate possible given the
     average writing speed of each user. }
   \label{fig:channel_rate_per_user}
+\end{figure}
+
+\begin{figure}[!t]
+  \centering
+  \includegraphics[width=0.9\columnwidth]{figures/histogram_channel_rate.pdf}
+  \caption{Average channel rate of each character under the condition $\RAdapt$.}
+  \label{fig:histogram_english_rate} 
 \end{figure}
 
 In the case of perfect recognition, a simple way to increase the
@@ -636,14 +651,6 @@ rate. Figure~\ref{fig:histogram_english_rate} reveals the efficiency of each
 letter for our handwriting channel. Characters with complex stokes,
 such as 'q', 'g','k', are not as efficient as characters with simple
 strokes such as 'c' ,'o', 'l'. 
-
-\begin{figure}
-  \centering
-  \includegraphics[width=0.9\columnwidth]{figures/histogram_channel_rate.pdf}
-  \caption{Average channel rate of each character under the condition $\RAdapt$.}
-  \label{fig:histogram_english_rate} 
-\end{figure}
-
 
 \subsection{Confusion and the conditional entropy}
 
@@ -669,7 +676,7 @@ when there is a confusion, the entropy does not necessarily converge
 to zero when at the end of the writing e.g. the entropy of 'y' in
 Figure~\ref{fig:entropy_y}.
 
-\begin{figure*}
+\begin{figure*}[!p]
   \centering
   \includegraphics[width=0.9\textwidth]{figures/confusion.pdf}
   \caption{The confusion between two prototypes (circle nodes)
@@ -694,7 +701,7 @@ suspect that such confusion happens when the probability of 'y' between
 contenders. The posterior distribution of a correctly recognized 'y'
 is shown in Figure~\ref{fig:entropy_y}.
 
-\begin{figure*}
+\begin{figure*}[!p]
   \centering
   \begin{subfigure}[b]{0.35\textwidth}
     \includegraphics[width=\textwidth]{figures/entropy_z.pdf}
@@ -748,7 +755,7 @@ when writing the pair.
   \end{subfigure}
   \caption{The posterior distributions as a function of time. The top
     row is the partial handwriting trajectories up to each dotted
-    line. The middle row is the likelihood distributions over time
+    line. The middle row is the posterior distributions over time
     where each color corresponds to each label. The bottom row is the
     entropy over time. }
   \label{fig:entropy}
@@ -759,20 +766,20 @@ when writing the pair.
 \label{sec:conclusions}
 
 In this paper, we presented a theoretical framework for quantifying
-the data transfer rate of a system that combines a human writer and a
-handwriting recognition system. We developed an adaptative character
-recognition algorithm and showed the results of a small deployment of
-the system. From the results, we concluded that both the adaptation of
-the computer (machine learning) and the adaptation of the human
-(learning to write) needs to be considered together in order to design
-a system that maximizes the information rate. Finally, we performed a
-detailed analysis of the information transmission within the time a
-single letter is written. Based on this analysis we can pinpoint the
-location where the writer is failing to clearly disambiguate two
-letters. On the other hand, we find other letters which are recognized
-shortly after they begin. These identify inefficiencies in the coding
-process and suggests ways we can teach the user to write in a way that
-would increase the over channel rate of the system.
+the data transfer rate of a system that combines a human writer with a
+handwriting recognition system. We developed an adaptive handwriting
+recognition algorithm and showed the results from a small deployment
+of the system. From the results, we concluded that both the adaptation
+of the computer (machine learning) and of the human (learning to
+write) need to be considered together in order to design a system that
+maximizes the information rate. Finally, we performed a detailed
+analysis of the information transmission during the time that a single
+letter is written. Based on this analysis, we can pinpoint the
+location where the writer is failing to clearly disambiguate between
+two or more letters. On the other hand, we found other letters which
+are recognized shortly after the writing begins. These identify
+inefficiencies in the coding process and suggest ways we can guide the
+user to write in a way that would increase the overall channel rate.
 
 
 % Balancing columns in a ref list is a bit of a pain because you
@@ -794,7 +801,7 @@ would increase the over channel rate of the system.
 %
 % Or, just remove \balance and give up on balancing the last page.
 %
-\balance
+%\balance
 
 % If you want to use smaller typesetting for the reference list,
 % uncomment the following line:
