@@ -196,16 +196,14 @@ Our goal in this paper is not to address those challenges, but rather
 to focus on characterizing the impact of machine adaptation and of
 human adaptation in the context of handwriting recognition.
  
-The paper is organized as follows. In Section~\ref{sec:channel}, we
-propose an information-theoretic framework for quantifying the
-efficiency of a handwriting system where the system includes both the
-user and the computer. In Section~\ref{sec:recognition_algorithm}, we
-describe our adaptive handwriting recognition algorithm that we
-developed for our experiment. In Section~\ref{sec:experiment} and
-Section~\ref{sec:results}, we describe the experiment and present the
-results in terms of the performance measures derived from the proposed
-framework. Finally, we draw some conclusions in
-Section~\ref{sec:conclusions}.
+The paper is organized as follows. First, we propose an
+information-theoretic framework for quantifying the efficiency of a
+handwriting system where the system includes both the user and the
+computer. Next, we describe our adaptive handwriting recognition
+algorithm that we developed for our experiment. Then, we describe the
+experiment and present the results in terms of the performance
+measures derived from the proposed framework Finally, we draw some
+conclusions.
 
 
 \section{Handwriting recognition as a communication channel}
@@ -331,25 +329,32 @@ of log loss. We define $\RLL$ to be
 
 \begin{lemma}
 \label{lemma:bound}
-For any intent $m \in \intentSet$ and $a =-\log_2 P(\predFinal = m | \intent = m)$, then 
-\[H(\predFinal | \intent=m) \leq a(1+\log_2 a + \log_2 (|\intentSet|-1))\]
+Let $P_{i,j}$ denote $P(\predFinal = i | \intent = j)$. For any intent $m \in \intentSet$ and $a = -\log_2 P_{m,m}$, then 
+\[ H(\predFinal | \intent=m) \leq a + a^{-1} + \log_2
+(|\intentSet|-1) \]
 \end{lemma}
 \begin{proof}
 By definition:
-Let $P_{i,j}$ denote $P(\predFinal = i | \intent = j)$.
 \[ H(\predFinal | \intent=m) = -\displaystyle\sum_{i \in \intentSet} P_{i,m} \log P_{i,m}\]
 Given the value of $P_{i,m}$, the entropy is maximized if the
 remaining probability is divided uniformly across the remaining $|\intentSet|-1$
 values. Let $p$ denote $P_{m,m}$.
 \[
- H(\predFinal | \intent=m) \leq -p \log p - (1-p) \log \left(\frac{1-p}{|\intentSet|-1}\right)
+ H(\predFinal | \intent=m) \leq -p \log_2 p - (1-p) \log_2 \left(\frac{1-p}{|\intentSet|-1}\right)
 \]
-Using the definition $a = -\log_2 p$, we have that $p=2^{-a}$ and 
-we can rewrite this expression as 
+We can rewrite this expression as 
+{
+\small
 \[
- H(\predFinal | \intent=m) \leq a e^{-a} -(1-e^{-a})(\ln(1-e^{-a})-\ln(k-1))
+ H(\predFinal | \intent=m) \leq -p \log_2 p - (1-p) \log_2 (1-p) +
+ (1-p) \log_2 (|\intentSet|-1)
 \]
-Using the Taylor expansion of first order around $a=0$ we get the bound.
+}
+Using the definition $a = -\log_2 p$, we have $p = 2^{-a}$. We can
+bound each term on the right hand side as follows. 
+\[
+ H(\predFinal | \intent=m) \leq a + a^{-1} + \log_2 (|\intentSet|-1)
+\]
 \end{proof}
 
 From Lemma~\ref{lemma:bound}, it follows that when $-\log_2
@@ -474,9 +479,9 @@ while maintaining the same recognition power, using a variant of
 forward-backward algorithm. Figure~\ref{fig:state_reduction} shows the
 hidden states before and after the reduction step.
 
-\begin{figure}[h]
+\begin{figure}
   \centering
-  \includegraphics[width=0.5\textwidth] {figures/state_reduction.png}
+  \includegraphics[width=0.9\columnwidth] {figures/state_reduction.png}
   \caption{The hidden state reduction process is applied to each
     prototype to remove rarely visited states with respect to the
     training set. The originally trained prototype is shown on the
@@ -542,7 +547,7 @@ it is sufficient to demonstrate our point.
 
 
 \section{Results and discussion}
-\label{sec:results}
+\label{sec-results}
 
 The average channel rates per session of the two conditions $\RAdapt$
 and $\RFixed$ are shown in Figure~\ref{fig:channel_rate_adapt} and
@@ -634,9 +639,9 @@ strokes such as 'c' ,'o', 'l'.
 
 \begin{figure}
   \centering
-  \includegraphics[width=\textwidth]{figures/histogram_english.pdf}
+  \includegraphics[width=0.9\columnwidth]{figures/histogram_channel_rate.pdf}
   \caption{Average channel rate of each character under the condition $\RAdapt$.}
-  \label{fig:histogram_channel_rate} 
+  \label{fig:histogram_english_rate} 
 \end{figure}
 
 
