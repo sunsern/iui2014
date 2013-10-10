@@ -116,12 +116,13 @@ and of human adaptation.
 \end{abstract}
 
 \keywords{
-	Guides; instructions; author's kit; conference publications;
-	keywords should be separated by a semi-colon.
+  Co-adaptation; handwriting recognition; communication channel;
+%  Guides; instructions; author's kit; conference publications;
+%  keywords should be separated by a semi-colon.
 %	\\\textcolor{red}{Mandatory section to be included in your final version.}
 }
 
-\category{H.5.m.}{Information Interfaces and Presentation (e.g. HCI)}{Miscellaneous
+\category{H.5.2}{Information Interfaces and Presentation (e.g. HCI)}{User Interfaces
 %\\
 %\textcolor{red}{See: \url{http://www.acm.org/about/class/1998/}
 %for more information and the full list of ACM classifiers and descriptors. 
@@ -130,15 +131,18 @@ and of human adaptation.
 }
 
 \terms{
-	Human Factors; Design; Measurement. 
-	If you choose more than one ACM General Term, 
-	separate the terms with a semi-colon.
+	Algorithms; Measurement; Human Factors
+%	If you choose more than one ACM General Term, 
+%	separate the terms with a semi-colon.
 %\\
 %\textcolor{red}{If you choose more than one ACM General Term, 
 %separate the terms with a semi-colon. See list of ACM terms at:
 %\url{http://www.sheridanprinting.com/sigchi/generalterms.htm}.
 %Optional section to be included in your final version.}
 }
+
+\newtheorem{theorem}{Theorem}   
+\newtheorem{lemma}[theorem]{Lemma}
 
 \section{Introduction}
 
@@ -158,7 +162,7 @@ such as Thai or Chinese which contains more than 60 and thousands of
 different characters respectively. For such languages, as well as in
 the multilingual settings, the users are required to either repeatedly
 switch between different keyboard layouts in order to find the desired
-character or alternatively.
+character.
 
 \newcommand{\tm}{\textsuperscript{\textregistered}~}
 
@@ -271,7 +275,7 @@ define the mean posterior of $\predFinal$ conditioned on $\intent$ and
 the average posterior distribution as follows.
 \[
 P(\predFinal | \intent) =
-\int_{\writingVec \sim \writingDist} { P(\predFinal | \writingVec)
+\int\limits_{\writingVec \sim \writingDist} { P(\predFinal | \writingVec)
 P(\writingVec | \intent)} 
 \]
 \[
@@ -282,71 +286,79 @@ P(\intent = m) P(\predFinal | \intent = m)
 \]
 Given these two expressions, we can define the mutual information
 between the character $\intent$ and the decoding $\predFinal$ to be 
+{
+\small
 \[
-I(\intent ; \predFinal) = H(\predFinal) - \sum_{m \in \intentSet}
-P(\intent = m) H(\predFinal | \intent = m)
+I(\intent ; \predFinal) = 
+H(\predFinal)
+- \sum_{m \in \intentSet} P(\intent = m) H(\predFinal | \intent = m)
 \]
+
+}
 where the entropy of $\predFinal$ is defined as
 \[
 H(\predFinal) = -\sum_{m \in \intentSet} {
 P(\predFinal = m) \log_2 P(\predFinal = m)}
 \]
+
+\newcommand{\RMI}{R_{\mathrm{MI}}}
+\newcommand{\RLL}{R_{\mathrm{LL}}}
+
 Now we define the channel rate to be 
 \begin{align}
 \label{eq:channel_rate}
-R_{MI}
+\RMI
 = 
 \frac{I( \intent ;  \predFinal)}{\expectedDuration}
 \end{align}
 
-The channel rate $R_{MI}$ is not suitable for practical use for two
-reasons. First, the estimates of $R_{MI}$ relies on the estimates of
-$H(\predFinal | \intent)$ which typically require an extensive amount
-of data. Secondly, suppose the original intent is $m$, $R_{MI}$ yeild a high value as long as
-$P(\predFinal | \intent = m)$ concentrates on some intent $o$ regardless
-of whether $o = m$.  We propose an alternative to the $R_{MI}$, called
-$R_{LL}$, based on the idea of log loss.
+The channel rate $\RMI$ is not suitable for practical implementation
+for two reasons. First, the estimates of $\RMI$ relies on the
+estimates of $H(\predFinal | \intent)$ which typically require an
+extensive amount of data. Secondly, suppose the original intent is
+$m$, $\RMI$ yeilds a high value as long as $P(\predFinal | \intent =
+m)$ concentrates on some intent $n$ regardless of whether $n = m$.  We
+propose an alternative to the $\RMI$, called $\RLL$, based on the idea
+of log loss. We define $\RLL$ to be
+{ 
+\scriptsize
+\begin{align}
+\label{eq:channel_rate_ll}
+\RLL = \frac{H(\predFinal) 
+ - \displaystyle\sum_{m \in \intentSet} P(\intent = m) (-\log_2 P(\predFinal = m | \intent = m))}{\expectedDuration}
+\end{align}
+}
+
+\begin{lemma}
+\label{lemma:bound}
+For any intent $m \in \intentSet$ and $a =-\log_2 P(\predFinal = m | \intent = m)$, then 
+\[H(\predFinal | \intent=m) \leq a(1+\log_2 a + \log_2 (|\intentSet|-1))\]
+\end{lemma}
+\begin{proof}
+By definition:
+Let $P_{i,j}$ denote $P(\predFinal = i | \intent = j)$.
+\[ H(\predFinal | \intent=m) = -\displaystyle\sum_{i \in \intentSet} P_{i,m} \log P_{i,m}\]
+Given the value of $P_{i,m}$, the entropy is maximized if the
+remaining probability is divided uniformly across the remaining $|\intentSet|-1$
+values. Let $p$ denote $P_{m,m}$.
 \[
-R_{LL} = \frac{H(\predFinal) - \sum_{m \in \intentSet}
-P(\intent = m) (-\log_2 P(\predFinal = m | \intent = m))}{\expectedDuration}
+ H(\predFinal | \intent=m) \leq -p \log p - (1-p) \log \left(\frac{1-p}{|\intentSet|-1}\right)
 \]
-
-
-
-
-
-
-
-
-yields a high value as long as $P(\predFinal |
-\intent)$ concentrates on some intent. We propose another measure of
-the channel rate $R_{logloss}$ based on the idea of log loss that
-also penalizes incorrectly concentrated distributions.
+Using the definition $a = -\log_2 p$, we have that $p=2^{-a}$ and 
+we can rewrite this expression as 
 \[
-R_{logloss}(\intent, \predFinal)
-=
-\frac{H(\predFinal) - \sum_{m \in \intentSet})
-P(\intent = m) L(\predFinal | \intent)}{\expectedDuration}
+ H(\predFinal | \intent=m) \leq a e^{-a} -(1-e^{-a})(\ln(1-e^{-a})-\ln(k-1))
 \]
-where
-\[
-L(\predFinal | \intent) 
-=  
-\sum_{m \in \intent} P(\intent = m) [ - \log_2 P(\predFinal = m |
-\intent = m) ]
-\]
+Using the Taylor expansion of first order around $a=0$ we get the bound.
+\end{proof}
 
-\begin{enumerate}
-\item $R_{MI} \ge R_{logloss}$ when $P(\predFinal = m | \intent =m) < 1/|\intentSet|$ 
-because $\mathcal{E}[-\log_2 P(\predFinal | \intent = m)] \le \log_2
-|\intentSet|$ and $\log_2 |\intentSet| \le -\log_2 P(\predFinal = m |
-\intent = m)$\\
-\item $R_{logloss} \ge R_{MI}$ when $P(\predFinal = m | \intent =m)
-  \ge \mathcal{E}_j[P(\predFinal = j | \intent = m)]$ since $-\log_2
-  P(\predFinal = m | \intent =m) \le -\log_2
-  \mathcal{E}_j[P(\predFinal = j | \intent = m)] \le \mathcal{E}_j[
-  -\log_2 P(\predFinal = j | \intent = m)]$ 
-\end{enumerate}
+From Lemma~\ref{lemma:bound}, it follows that when $-\log_2
+P(\predFinal = m | \intent = m)$ is small then the conditional entropy
+$H(\predFinal | \intent)$ is also small. As a result, the mutual
+information $I( \intent ; \predFinal)$ will be close to its maximal
+possible value of $H(\predFinal)$. In other words, the log loss
+$-\log_2 P(\predFinal = m | \intent = m)$ provides an upper bound for
+the conditional entropy $H(\predFinal | \intent)$.
 
 Intuitively, the channel rate is a measure that quantifies both
 accuracy and speed of a handwriting recognition channel at the same
@@ -362,7 +374,7 @@ maximizing the channel rate is equivalent to finding a balance between
 maximizing the recognition accuracy and minimizing the writing time
 and effort of the user.
 
-Based on the model, we suggest that the channel rate can be improved
+Based on this framework, we suggest that the channel rate can be improved
 by a combination of human learning and machine learning, which
 corresponds to improving the handwriting process and the recognition
 process respectively. Ideally, $\predFinal$ is always concentrated
@@ -400,18 +412,18 @@ Markov-based models~\cite{ThomasPloetz2011} for each element in
 $\intentSet$. We refer to each of such models as a {\em
   prototype}. Each prototype is a left-to-right HMM with Gaussian
 observations with each of the hidden states correponds to a sample
-point in the trajectory. We denote a set of prototypes for a user $u$
-as $\prototypeSet_u$. The adaptivity of our system comes from the
+point in the trajectory. Let $\prototypeSet_u$ denote a set of
+prototypes for a user $u$. The adaptivity of our system comes from the
 re-training of $\prototypeSet_u$. In decoding, given a handwriting
 trajectory and a set of prototypes $\prototypeSet_u$, the system
-computes a posteior distribution $\predFinal$. When a single
+computes a posteior distribution $\predFinal$ and, when a single
 prediction is needed, the element with the maximum likelihood is
 predicted.
 
-\subsection{Features and distance function}
+\subsection{Feature vectors and distance function}
 
 As a preprocessing step, each instance of the handwriting trajectory
-is appended with the second order dynamics i.e. velocity. After
+is appended with the supplemental information. After
 preprocessing, a handwriting instance is described by a sequence of
 feature vectors $\langle f_1, \ldots, f_T \rangle$ where
 $f_i = (x_i,y_i, dx_i,dy_i)$. $(x_i,y_i)$ denotes the normalized
@@ -419,11 +431,11 @@ touchscreen coordinate and $(dx_i,dy_i) = (\frac{x_i - x_{i-1}}{z},
 \frac{y_i - y_{i-1}}{z}) , z = \sqrt{(x_i - x_{i-1})^2 + (y_i -
   y_{i-1})^2}$ denotes the writing direction.
 
-In order to determine similarity between two handwriting instances
-or a handwriting instance and a prototype, we defined a measurement
-function based on the {\it dynamic time warping} (DTW)
-distance~\cite{Rabiner1993} which is commonly used for variable-length
-data such as handwriting and speech.
+For measuring the similarity between two handwriting instances or a
+handwriting instance and a prototype, we use {\it dynamic time
+  warping} (DTW) distance~\cite{Rabiner1993} as the distance function
+in our algorithm. The DTW distance is commonly used for
+variable-length data such as handwriting and speech.
 
 \subsection{Initial adaptation}
 
@@ -441,8 +453,9 @@ about the user and, therefore, assign a set of typical prototypes
 which has been trained using data from multiple users in the past.  We
 refer to this set of prototypes as $\prototypeSet_0$. After the first
 interaction, the system selects a set of prototypes
-$\prototypeSet_{(u,1}$ such that each prototype in the set minimizes
-the distance to the corresponding handwriting instances.
+$\prototypeSet_{(u,1)}$ from the database of all prototypes across
+different users such that each prototype in the set minimizes the
+distance to the corresponding handwriting instances.
 
 
 \subsection{Adapting the prototypes over time}
@@ -482,16 +495,20 @@ algorithm computes the distance from $\writing{t}$ to each of the
 prototypes in $\prototypeSet_u$. The distances are transformed into a
 probability distribution $\pred{t}$. This decoding process is
 implemented using a dynamic programming technique which is similar in
-spirit to the forward algorithm. When a single prediction is expected,
+spirit to the forward algorithm~\cite{Bilmes97}. When a single prediction is expected,
 the algorithm returns the prediction with the maximum likelihood.
 
 
 \section{Experiment}
 \label{sec:experiment}
 
+\newcommand{\RAdapt}{R_{\mathrm{adapt}}}
+\newcommand{\RFixed}{R_{\mathrm{fixed}}}
+\newcommand{\RIdeal}{R_{\mathrm{ideal}}}
+
 The main objective of our experiment is to determine and quantify the
 effect of machine adaptation and of human adaptation when the users
-interact with the system over a period of time.  We conducted an
+interact with the system over some period of time.  We conducted an
 experiment in the format of a game where the participants were asked
 to compete in a writing game. In each session, each participant was
 presented with a random permutation of the 26 lowercase English
@@ -508,24 +525,30 @@ to play the writing game, which is an implementation our adaptive
 recognition algorithm on the Apple iPads and iPhones, for at least 20
 sessions over multiple days in his/her own pace.
 
+The experiment was set up to demonstrate a condition called {\em
+  co-adaptation} where both the user and the computer were allowed to
+adapt together. We denote this condition $\RAdapt$. To investigate the
+effect of co-adaptation, we create a controlled condition called
+$\RFixed$ where the computer was not allowed to adapt with the
+user. In other words, we ran a simulation to figure out what the
+channel rates would have been if the prototype sets were never changed
+from $\prototypeSet_0$. Ideally, it would be more preferable to have
+$\RFixed$ determined by another control group where the prototypes
+were kept fixed and never changed. Unfortunately, we found that hard to
+do since the experiment was done on volunteers. However, the results
+from the simulated condition can be seen as a lower bound on the
+amount of the improvement attributable to human learning and, therefore,
+it is sufficient to demonstrate our point.
+
 
 \section{Results and discussion}
 \label{sec:results}
 
-The experiment was set up to demonstrate a condition called {\em
-  co-adaptation} where both the user and the computer were allowed to
-adapt together. We denote this condition $R_{adapt}$. The average
-channel rates per session of each user using are shown in
-Figure~\ref{fig:channel_rate_adapt}. 
+The average channel rates per session of the two conditions $\RAdapt$
+and $\RFixed$ are shown in Figure~\ref{fig:channel_rate_adapt} and
+Figure~\ref{fig:channel_rate_fixed} respectively.
 
-To investigate the effect of co-adaptation, we create a controlled 
-condition called $R_{fixed}$ where the computer was not allowed to
-adapt with the user. In other words, we ran a simulation to figure out what the
-channel rates would have been if the prototype sets were never changed
-from $\prototypeSet_0$. The results are shown in
-Figure~\ref{fig:channel_rate_fixed}.
-
-Although the prototype set was not changing in $R_{fixed}$, we observe
+Although the prototype set was not changing in $\RFixed$, we observe
 that channel rate increases over the sessions. The paired t-test
 indicates a significant difference between the average channel rate in
 the first 5 sessions and the average channel rate in the last 5
@@ -535,10 +558,10 @@ handwriting on their own. We call this effect {\em user
 
 Figure~\ref{fig:duration} and Figure~\ref{fig:mutual_information}
 reveal that the major contribution of {\em user adaptation} comes from
-the fact that the users writing faster in the first 5 sessions
-compared to the last 5 sessions ($p < 0.0001$), and not because of the
+the fact that the users write faster in the last 5 sessions
+compared to the first 5 sessions ($p < 0.0001$), and not because of the
 system recieved more information from the user ($p = 0.9723$). This
-result is expected according to the power law of practice~\cite{Newell1981}.
+result is as expected according to the law of practice~\cite{Newell1981}.
 
 \begin{figure}
   \centering
@@ -552,16 +575,18 @@ result is expected according to the power law of practice~\cite{Newell1981}.
     \caption{Mutual information}
     \label{fig:mutual_information}
   \end{subfigure}
+  \caption{The average writing time per session and the average mutual
+    information per session under the condition $\RFixed$.}
 \end{figure}
 
 
-In Figure~\ref{fig:channel_rate_per_user}, we compare $R_{adapt}$ and
-$R_{fixed}$ for each user. We found that the channel rate of
-$R_{adapt}$ is significantly higher than that of $R_{fixed}$ with $p <
+In Figure~\ref{fig:channel_rate_per_user}, we compare $\RAdapt$ and
+$\RFixed$ for each user. We found that the channel rate of
+$\RAdapt$ is significantly higher than that of $\RFixed$ with $p <
 0.0006$.  This result confirms that the computer adaptation helps
 improving the overall channel rate. In addition, we calculate the
 theoretical maximum of the channel rate under the assumption of the
-perfect recognition, denoted by $R_{ideal}$. The maximum rates are
+perfect recognition, denoted by $\RIdeal$. The maximum rates are
 given by $H(\predFinal) / \expectedDuration$ and we approximated $H(\predFinal) =
 \log_2(26)$.
 
@@ -569,17 +594,17 @@ given by $H(\predFinal) / \expectedDuration$ and we approximated $H(\predFinal) 
   \centering
   \begin{subfigure}[b]{\columnwidth}
     \includegraphics[width=\columnwidth]{figures/IUI_BPS_p_adapt.pdf}
-    \caption{$R_{adapt}$}
+    \caption{$\RAdapt$}
     \label{fig:channel_rate_adapt}
   \end{subfigure}
   \begin{subfigure}[b]{\columnwidth}
     \includegraphics[width=\columnwidth]{figures/IUI_BPS_p_first.pdf}
-    \caption{$R_{fixed}$}
+    \caption{$\RFixed$}
     \label{fig:channel_rate_fixed}
   \end{subfigure}
   \begin{subfigure}[b]{\columnwidth}
     \includegraphics[width=\columnwidth]{figures/IUI_BPS_diff_p_first.pdf}
-    \caption{$R_{adapt} - R_{fixed}$}
+    \caption{$\RAdapt - \RFixed$}
     \label{fig:channel_rate_diff}
   \end{subfigure}
   \label{fig:channel_rate}
@@ -590,9 +615,9 @@ given by $H(\predFinal) / \expectedDuration$ and we approximated $H(\predFinal) 
 
 \begin{figure}
   \centering
-  \includegraphics[width=.5\textwidth]{figures/IUI_user_summary.pdf}   
-  \caption{The average channel rate of each user in $R_{adapt}$ and
-    $R_{fixed}$. $R_{ideal}$ shows the maximum channel rate possible given the
+  \includegraphics[width=.9\columnwidth]{figures/IUI_user_summary.pdf}   
+  \caption{The average channel rate of each user in $\RAdapt$ and
+    $\RFixed$. $\RIdeal$ shows the maximum channel rate possible given the
     average writing speed of each user. }
   \label{fig:channel_rate_per_user}
 \end{figure}
@@ -602,12 +627,18 @@ channel rate is to increase the size of the character set
 $\intentSet$. However, in reality, doing so can lead to a
 recognition error rate which impairs the channel rate. An interesting
 future direction is to find a character set that would maximize the channel
-rate. 
-
-Figure~\ref{fig:histogram_english} reveals the efficiency of each
+rate. Figure~\ref{fig:histogram_english_rate} reveals the efficiency of each
 letter for our handwriting channel. Characters with complex stokes,
 such as 'q', 'g','k', are not as efficient as characters with simple
 strokes such as 'c' ,'o', 'l'. 
+
+\begin{figure}
+  \centering
+  \includegraphics[width=\textwidth]{figures/histogram_english.pdf}
+  \caption{Average channel rate of each character under the condition $\RAdapt$.}
+  \label{fig:histogram_channel_rate} 
+\end{figure}
+
 
 \subsection{Confusion and the conditional entropy}
 
@@ -658,7 +689,7 @@ suspect that such confusion happens when the probability of 'y' between
 contenders. The posterior distribution of a correctly recognized 'y'
 is shown in Figure~\ref{fig:entropy_y}.
 
-\begin{figure}
+\begin{figure*}
   \centering
   \begin{subfigure}[b]{0.35\textwidth}
     \includegraphics[width=\textwidth]{figures/entropy_z.pdf}
@@ -680,7 +711,7 @@ is shown in Figure~\ref{fig:entropy_y}.
     bottom example are recognized correctly as an 'n' and an 'h'
     respectively. The middle example is recognized as an 'h' instead
     of the true label 'n'.}
-\end{figure}
+\end{figure*}
 
 In Figure~\ref{fig:confusion}, we show the posterior distributions
 over time of 3 examples selected from a single user: a correctly
@@ -693,7 +724,7 @@ can be delivered to the user in a form of the instructional feedback
 to encourage the user to pay more attention to the upward movement part
 when writing the pair.
 
-\begin{figure}
+\begin{figure*}
   \centering
   \begin{subfigure}[b]{0.25\textwidth}
     \includegraphics[width=\textwidth]{figures/entropy_g.pdf}
@@ -716,7 +747,7 @@ when writing the pair.
     where each color corresponds to each label. The bottom row is the
     entropy over time. }
   \label{fig:entropy}
-\end{figure}
+\end{figure*}
 
 
 \section{Conclusions}
